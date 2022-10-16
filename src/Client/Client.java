@@ -7,12 +7,11 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
-import java.util.Scanner;
 
 public class Client {
 
-    private int serverPort;
-    private InetAddress serverIP;
+    private final int serverPort;
+    private final InetAddress serverIP;
 
     public Client(int serverPort, InetAddress serverIP) {
         this.serverPort = serverPort;
@@ -20,7 +19,9 @@ public class Client {
     }
 
     public void service(String command) throws IOException {
-
+        if (command.equals("i")) {
+            System.out.println("Initialize Logic");
+        }
 
         char c = 's';
 
