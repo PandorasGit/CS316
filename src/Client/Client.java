@@ -12,37 +12,42 @@ public class Client {
 
     private final int serverPort;
     private final InetAddress serverIP;
+    private SocketChannel sc;
+    private InitializedFile file;
 
-    public Client(int serverPort, InetAddress serverIP) {
+    public Client(int serverPort, InetAddress serverIP) throws IOException {
         this.serverPort = serverPort;
         this.serverIP = serverIP;
+        this.sc = connect();
     }
 
-    public void service(String command) throws IOException {
+    public SocketChannel connect() throws IOException {
+        SocketChannel sc = SocketChannel.open();
+        //blocking call
+        sc.connect(new InetSocketAddress(serverIP,serverPort));
+        return sc;
+    }
+
+
+    public String service(String[] command) throws IOException {
         char c = 's';
         byte[] b = new byte[1];
         b[0] = (byte) c;
         ByteBuffer buffer = ByteBuffer.wrap(b);
-
-        if (command.equals("i")) {
+        if (command[0].equals("i")) {
             buffer = initialize();
+            return "File set, ready to upload";
         }
         else if (command.equals("u")) {
             buffer = upload();
         }
-
-
-
-        SocketChannel sc = SocketChannel.open();
-        //blocking call
-        sc.connect(new InetSocketAddress(serverIP,serverPort));
-
         sc.write(buffer);
         sc.read(buffer);
         buffer.flip();
         System.out.println("Message from the server: " + (char)buffer.get());
         buffer.rewind();
         sc.close();
+        return "Default Return";
     }
 
     private ByteBuffer initialize(){
