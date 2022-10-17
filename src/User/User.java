@@ -10,7 +10,7 @@ import java.util.Scanner;
 
 
 public class User {
-    
+
 
     public static void main(String[] args) throws IOException {
         if (args.length != 2) {
@@ -42,7 +42,7 @@ public class User {
         command = command.toLowerCase(Locale.ROOT);
 
 
-        commandParam = command_split_array[0];
+
         command_split_array[0] = firstCommand(command);
         return command_split_array;
     }
