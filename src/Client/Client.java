@@ -2,11 +2,16 @@ package Client;
 
 
 
-import java.io.IOException;
+import java.io.*;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 
 public class Client {
 
@@ -31,6 +36,9 @@ public class Client {
 
 
     public String service(String[] command) throws IOException {
+        if (command.length != 2) {
+            return "Use the following syntax <command> -<parameter>";
+        }
         char c = 's';
         byte[] b = new byte[1];
         b[0] = (byte) c;
@@ -39,10 +47,14 @@ public class Client {
         switch (command[0]){
             case "i":
                 buffer = initialize(command);
+                save();
                 return "File set, ready to upload";
             case "u":
                 buffer = upload(command);
                 return "Upload command sent";
+            case "d":
+                buffer = download(command);
+                return "Download comment sent";
             default:
                 System.out.println("no valid command");
         }
@@ -53,12 +65,22 @@ public class Client {
         buffer.flip();
         System.out.println("Message from the server: " + (char)buffer.get());
         buffer.rewind();
+        sc.shutdownOutput();
         sc.close();
         return "Default Return";
     }
 
+    private ByteBuffer download(String[] command) {
+        char c = 'd';
+        byte[] b = new byte[1];
+        b[0] = (byte) c;
+        return ByteBuffer.wrap(b);
+
+    }
+
     private ByteBuffer initialize(String[] command){
-        this.file = new InitializedFile(command[0], command[1]);
+        File file = new File(command[1]);
+        this.file = new InitializedFile(file.getName(), file);
         char c = 'i';
         byte[] b = new byte[1];
         b[0] = (byte) c;
@@ -70,5 +92,18 @@ public class Client {
         byte[] b = new byte[2048];
         b[0] = (byte) c;
         return ByteBuffer.wrap(b);
+    }
+
+    private void save() throws IOException {
+        final String content = this.file.content;
+        final Path path = Paths.get(String.format("%s", this.file.name));
+
+        try (
+                final BufferedWriter writer = Files.newBufferedWriter(path,
+                        StandardCharsets.UTF_8, StandardOpenOption.CREATE);
+        ) {
+            writer.write(content);
+            writer.flush();
+        }
     }
 }
