@@ -10,6 +10,7 @@ import java.nio.channels.SocketChannel;
 
 public class Client {
 
+    private static int maxDataSize = 2048;
     private final int serverPort;
     private final InetAddress serverIP;
     private SocketChannel sc;
@@ -34,13 +35,19 @@ public class Client {
         byte[] b = new byte[1];
         b[0] = (byte) c;
         ByteBuffer buffer = ByteBuffer.wrap(b);
-        if (command[0].equals("i")) {
-            buffer = initialize();
-            return "File set, ready to upload";
+
+        switch (command[0]){
+            case "i":
+                buffer = initialize(command);
+                return "File set, ready to upload";
+            case "u":
+                buffer = upload(command);
+                return "Upload command sent";
+            default:
+                System.out.println("no valid command");
         }
-        else if (command.equals("u")) {
-            buffer = upload();
-        }
+
+
         sc.write(buffer);
         sc.read(buffer);
         buffer.flip();
@@ -50,16 +57,17 @@ public class Client {
         return "Default Return";
     }
 
-    private ByteBuffer initialize(){
+    private ByteBuffer initialize(String[] command){
+        this.file = new InitializedFile(command[0], command[1]);
         char c = 'i';
         byte[] b = new byte[1];
         b[0] = (byte) c;
         return ByteBuffer.wrap(b);
     }
 
-    private ByteBuffer upload(){
+    private ByteBuffer upload(String[] command){
         char c = 'u';
-        byte[] b = new byte[1];
+        byte[] b = new byte[2048];
         b[0] = (byte) c;
         return ByteBuffer.wrap(b);
     }

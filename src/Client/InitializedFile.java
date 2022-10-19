@@ -1,14 +1,12 @@
 package Client;
 
-import java.io.File;
-
 public class InitializedFile {
     String name;
-    File file;
+    String file_directory;
 
 
-    public InitializedFile(String name, File file) {
+    public InitializedFile(String name, String file) {
         this.name = name;
-        this.file = file;
+        this.file_directory = file;
     }
 }
