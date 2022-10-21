@@ -25,7 +25,6 @@ public class Server {
         while (true) {
             // blocking call, waits until the client connects and completes 3-way-handshake
             SocketChannel serveChannel = listeningSocket.accept();
-            System.out.println("a");
             ByteBuffer clientMessage = readClientMessage(serveChannel);
 
             char clientCommand = (char)clientMessage.get();
