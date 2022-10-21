@@ -14,6 +14,10 @@ public class InitializedFile {
         this.content = convertToContent(file);
     }
 
+    public InitializedFile(String name) {
+        this.name = name;
+    }
+
 
     private String convertToContent(File file) {
         try {
