@@ -36,9 +36,7 @@ public class Client {
 
 
     public String service(String[] command) throws IOException {
-        if (command.length != 2) {
-            return "Use the following syntax <command> -<parameter>";
-        }
+
         char c = 's';
         byte[] b = new byte[1];
         b[0] = (byte) c;
@@ -50,8 +48,8 @@ public class Client {
                 save();
                 return "File set, ready to upload";
             case "u":
-                buffer = upload(command);
-                return "Upload command sent";
+                upload(command);
+                return "Upload sent";
             case "d":
                 buffer = download(command);
                 return "Download comment sent";
@@ -87,11 +85,22 @@ public class Client {
         return ByteBuffer.wrap(b);
     }
 
-    private ByteBuffer upload(String[] command){
-        char c = 'u';
+    private void upload(String[] command) throws IOException {
+        String instruction = "u" + file.name;
         byte[] b = new byte[2048];
-        b[0] = (byte) c;
-        return ByteBuffer.wrap(b);
+        b = instruction.getBytes();
+        ByteBuffer buffer = ByteBuffer.wrap(b);
+        sc.write(buffer);
+        sc.read(buffer);
+        buffer.flip();
+        System.out.println("Message from the server: " + (char)buffer.get());
+        if ((char)buffer.get() == 'y'){
+            buffer.rewind();
+            sc.write(buffer);
+        }
+
+        sc.shutdownOutput();
+        sc.close();
     }
 
     private void save() throws IOException {
