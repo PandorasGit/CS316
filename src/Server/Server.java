@@ -29,7 +29,8 @@ public class Server {
 
             char clientCommand = (char)clientMessage.get();
             System.out.println("Message from client: " + clientCommand);
-
+            String fileName;
+            File file;
             switch (clientCommand) {
                 case 'i':
                     initializeFile();
@@ -37,18 +38,22 @@ public class Server {
                     serveChannel.close();
                     break;
                 case 'u':
+                    byte[] nameBytes = new byte[clientMessage.remaining()];
+                    fileName = new String(nameBytes);
+                    file = new File(fileName);
+                    System.out.println(fileName);
                     uploadFile();
-                    sendReplyCode(serveChannel, 'u');
+                    sendReplyCode(serveChannel, 'y');
                     serveChannel.close();
                     break;
                 //when the client wants to download the file
-                case 'G':
+                case 'd':
                     //read the rest of the buffer
                     byte[] a = new byte[clientMessage.remaining()];
                     clientMessage.get(a);
-                    String fileName = new String(a);
+                    fileName = new String(a);
                     //check if file exists
-                    File file = new File(fileName);
+                    file = new File(fileName);
                     if(!file.exists() || file.isDirectory()) {
                         sendReplyCode(serveChannel, 'F');
                     }else{
@@ -97,7 +102,7 @@ public class Server {
     }
 
     private static void uploadFile() {
-        System.out.println("upload");
+
     }
 
     private static void initializeFile() {
