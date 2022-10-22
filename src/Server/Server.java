@@ -93,18 +93,20 @@ public class Server {
     }
 
 
-    private static void listFiles() {
-        System.out.println("list: ");
+    private static void verifyArgs(String[] args) {
+        if (args.length != 1) {
+            System.out.println("Usage: ServerTCP <port>");
+            System.exit(1);
+        }
     }
 
 
-    private static void renameFile() {
-        System.out.println("rename");
-    }
+    private static ByteBuffer readClientMessage(SocketChannel serveChannel) throws IOException {
+        ByteBuffer buffer = ByteBuffer.allocate(MAX_CLIENT_MESSAGE_LENGTH);
+        while(serveChannel.read(buffer) >= 0);
+        buffer.flip();
 
-
-    private static void deleteFile() {
-        System.out.println("delete");
+        return buffer;
     }
 
 
@@ -130,27 +132,25 @@ public class Server {
     }
 
 
+    private static void deleteFile() {
+        System.out.println("delete");
+    }
+
+
+    private static void renameFile() {
+        System.out.println("rename");
+    }
+
+
+    private static void listFiles() {
+        System.out.println("list: ");
+    }
+
+
     private static void sendReplyCode(SocketChannel serveChannel, char code) throws IOException {
         byte[] a = new byte[1];
         a[0] = (byte)code;
         ByteBuffer data = ByteBuffer.wrap(a);
         serveChannel.write(data);
-    }
-
-
-    private static void verifyArgs(String[] args) {
-        if (args.length != 1) {
-            System.out.println("Usage: ServerTCP <port>");
-            System.exit(1);
-        }
-    }
-
-
-    private static ByteBuffer readClientMessage(SocketChannel serveChannel) throws IOException {
-        ByteBuffer buffer = ByteBuffer.allocate(MAX_CLIENT_MESSAGE_LENGTH);
-        while(serveChannel.read(buffer) >= 0);
-        buffer.flip();
-
-        return buffer;
     }
 }
