@@ -39,19 +39,17 @@ public class Server {
                     fileName = new String(fileNameAsBytes);
                     file = new File("./uploaded/" + fileName);
 
-                    System.out.println("\n" + fileName);
-                    System.out.println(file.exists() + "\n" + file.isDirectory());
-                    if(!file.exists() || file.isDirectory()) {
+                    if(!file.exists()) {
                         sendReplyCode(serveChannel, 'y');
                         uploadFile(file);
                     }else{
                         sendReplyCode(serveChannel, 'n');
-                        System.out.println("\nFailed");
+                        System.out.println("\nUpload failed, file exists.");
                     }
                     serveChannel.close();
                     break;
                 //when the client wants to download the file
-                case 'G':
+                case 'd':
                     //read the rest of the buffer
                     byte[] a = new byte[clientMessage.remaining()];
                     clientMessage.get(a);
@@ -59,10 +57,11 @@ public class Server {
                     //check if file exists
                     file = new File(fileName);
                     if(!file.exists() || file.isDirectory()) {
-                        sendReplyCode(serveChannel, 'F');
+                        System.out.println("File does not exist, or does exist and is a directory.");
+                        sendReplyCode(serveChannel, 'n');
                     }else{
-                        sendReplyCode(serveChannel, 'S');
-                        clientDownload(serveChannel, file);
+                        sendReplyCode(serveChannel, 'y');
+                        downloadFile(serveChannel, file);
                     }
                     serveChannel.close();
                     break;
@@ -93,17 +92,21 @@ public class Server {
         }
     }
 
+
     private static void listFiles() {
         System.out.println("list: ");
     }
+
 
     private static void renameFile() {
         System.out.println("rename");
     }
 
+
     private static void deleteFile() {
         System.out.println("delete");
     }
+
 
     private static void uploadFile(File file) throws IOException {
         System.out.println("file created");
@@ -112,7 +115,9 @@ public class Server {
         BufferedWriter bw = new BufferedWriter(new FileWriter(file, true));
     }
 
-    private static void clientDownload(SocketChannel serveChannel, File file) throws IOException {
+
+    private static void downloadFile(SocketChannel serveChannel, File file) throws IOException {
+        System.out.println("file sent to client");
         //send file to client assumed as text
         BufferedReader reader = new BufferedReader(new FileReader(file));
         String line;
@@ -123,6 +128,7 @@ public class Server {
             serveChannel.write(ByteBuffer.wrap(line.getBytes()));
         }
     }
+
 
     private static void sendReplyCode(SocketChannel serveChannel, char code) throws IOException {
         byte[] a = new byte[1];
@@ -147,12 +153,4 @@ public class Server {
 
         return buffer;
     }
-
-
-    //private static void echoClientMessage(SocketChannel serveChannel, ByteBuffer clientMessage) throws IOException {
-      //  byte[] a = new byte[1];
-        //a[0] = (byte)clientMessage.get(0);
-        //ByteBuffer data = ByteBuffer.wrap(a);
-        //serveChannel.write(data);
-    //}
 }
