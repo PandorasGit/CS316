@@ -1,18 +1,20 @@
 package Server;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
+import Client.InitializedFile;
+
+import java.io.*;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 
 
 public class Server {
 
     private static final int MAX_CLIENT_MESSAGE_LENGTH = 2048;
+    private static InitializedFile initializedFile;
 
     public static void main(String[] args) throws IOException {
         verifyArgs(args);
@@ -20,7 +22,6 @@ public class Server {
 
         ServerSocketChannel listeningSocket = ServerSocketChannel.open();
         listeningSocket.bind(new InetSocketAddress(port));
-
 
         while (true) {
             // blocking call, waits until the client connects and completes 3-way-handshake
@@ -32,22 +33,25 @@ public class Server {
             String fileName;
             File file;
             switch (clientCommand) {
-                case 'i':
-                    initializeFile();
-                    sendReplyCode(serveChannel, 'i');
-                    serveChannel.close();
-                    break;
                 case 'u':
-                    byte[] nameBytes = new byte[clientMessage.remaining()];
-                    fileName = new String(nameBytes);
-                    file = new File(fileName);
-                    System.out.println(fileName);
-                    uploadFile();
-                    sendReplyCode(serveChannel, 'y');
+                    byte[] fileNameAsBytes = new byte[clientMessage.remaining()];
+                    clientMessage.get(fileNameAsBytes);
+                    fileName = new String(fileNameAsBytes);
+                    file = new File("./uploaded/" + fileName);
+
+                    System.out.println("\n" + fileName);
+                    System.out.println(file.exists() + "\n" + file.isDirectory());
+                    if(!file.exists() || file.isDirectory()) {
+                        sendReplyCode(serveChannel, 'y');
+                        uploadFile(file);
+                    }else{
+                        sendReplyCode(serveChannel, 'n');
+                        System.out.println("\nFailed");
+                    }
                     serveChannel.close();
                     break;
                 //when the client wants to download the file
-                case 'd':
+                case 'G':
                     //read the rest of the buffer
                     byte[] a = new byte[clientMessage.remaining()];
                     clientMessage.get(a);
@@ -101,12 +105,11 @@ public class Server {
         System.out.println("delete");
     }
 
-    private static void uploadFile() {
-
-    }
-
-    private static void initializeFile() {
-        System.out.println("initialize");
+    private static void uploadFile(File file) throws IOException {
+        System.out.println("file created");
+        Files.createDirectories(Paths.get("./uploaded"));
+        //make sure to set the "append" flag to true
+        BufferedWriter bw = new BufferedWriter(new FileWriter(file, true));
     }
 
     private static void clientDownload(SocketChannel serveChannel, File file) throws IOException {
