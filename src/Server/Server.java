@@ -8,6 +8,7 @@ import java.nio.ByteBuffer;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 
 
@@ -30,11 +31,12 @@ public class Server {
 
             char clientCommand = (char)clientMessage.get();
             System.out.println("Message from client: " + clientCommand);
+            byte[] fileNameAsBytes;
             String fileName;
             File file;
             switch (clientCommand) {
                 case 'u':
-                    byte[] fileNameAsBytes = new byte[clientMessage.remaining()];
+                    fileNameAsBytes = new byte[clientMessage.remaining()];
                     clientMessage.get(fileNameAsBytes);
                     fileName = new String(fileNameAsBytes);
                     file = new File("./uploaded/" + fileName);
@@ -46,16 +48,14 @@ public class Server {
                         sendReplyCode(serveChannel, 'n');
                         System.out.println("\nUpload failed, file exists.");
                     }
-                    serveChannel.close();
+
                     break;
-                //when the client wants to download the file
                 case 'd':
-                    //read the rest of the buffer
-                    byte[] a = new byte[clientMessage.remaining()];
-                    clientMessage.get(a);
-                    fileName = new String(a);
-                    //check if file exists
+                    fileNameAsBytes = new byte[clientMessage.remaining()];
+                    clientMessage.get(fileNameAsBytes);
+                    fileName = new String(fileNameAsBytes);
                     file = new File(fileName);
+
                     if(!file.exists() || file.isDirectory()) {
                         System.out.println("File does not exist, or does exist and is a directory.");
                         sendReplyCode(serveChannel, 'n');
@@ -63,32 +63,48 @@ public class Server {
                         sendReplyCode(serveChannel, 'y');
                         downloadFile(serveChannel, file);
                     }
-                    serveChannel.close();
+
                     break;
                 case 'k':
-                    deleteFile();
-                    sendReplyCode(serveChannel, 'k');
-                    serveChannel.close();
+                    fileNameAsBytes = new byte[clientMessage.remaining()];
+                    clientMessage.get(fileNameAsBytes);
+                    fileName = new String(fileNameAsBytes);
+                    file = new File("./uploaded/" + fileName);
+
+                    if(file.exists()) {
+                        deleteFile(file);
+                        sendReplyCode(serveChannel, 'y');
+                    }else{
+                        System.out.println("File does not exist");
+                        sendReplyCode(serveChannel, 'n');
+                    }
+
                     break;
                 case 'r':
-                    renameFile();
-                    sendReplyCode(serveChannel, 'r');
-                    serveChannel.close();
+                    fileNameAsBytes = new byte[clientMessage.remaining()];
+                    clientMessage.get(fileNameAsBytes);
+                    fileName = new String(fileNameAsBytes);
+                    Path filePath = Path.of("./uploaded/" + fileName);
+
+                    if(filePath.toFile().exists()) {
+                        renameFile(filePath);
+                        sendReplyCode(serveChannel, 'y');
+                    }else{
+                        System.out.println("File does not exist");
+                        sendReplyCode(serveChannel, 'n');
+                    }
+
                     break;
                 case 'l':
                     listFiles();
                     sendReplyCode(serveChannel, 'l');
-                    serveChannel.close();
                     break;
                 case 's':
                     System.out.println("client sent s");
                     sendReplyCode(serveChannel, 's');
-                    serveChannel.close();
                     break;
             }
-
-            // repeat message back to the client
-            //echoClientMessage(serveChannel, clientMessage);
+            serveChannel.close();
         }
     }
 
@@ -132,13 +148,16 @@ public class Server {
     }
 
 
-    private static void deleteFile() {
-        System.out.println("delete");
+    private static void deleteFile(File file) throws IOException{
+        //Tries deleting the file and checks if it was successful
+        if(file.delete()) {
+            System.out.println("File deleted.");
+        }
     }
 
 
-    private static void renameFile() {
-        System.out.println("rename");
+    private static void renameFile(Path filePath) throws IOException {
+        Files.move(filePath, Path.of(filePath.toString() + "_renamed"));
     }
 
 
