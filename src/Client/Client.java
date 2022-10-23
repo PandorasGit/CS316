@@ -51,7 +51,7 @@ public class Client {
                 upload(command);
                 return "Upload sent";
             case "d":
-                buffer = download(command);
+                download(command);
                 return "Download comment sent";
             default:
                 System.out.println("no valid command");
@@ -68,12 +68,22 @@ public class Client {
         return "Default Return";
     }
 
-    private ByteBuffer download(String[] command) {
-        char c = 'd';
-        byte[] b = new byte[1];
-        b[0] = (byte) c;
-        return ByteBuffer.wrap(b);
+    private void download(String[] command) throws IOException {
+        String instruction = "d" + command[1];
+        byte[] b = new byte[2048];
+        b = instruction.getBytes();
+        ByteBuffer buffer = ByteBuffer.wrap(b);
+        sc.write(buffer);
+        sc.read(buffer);
+        buffer.flip();
+        System.out.println("Message from the server: " + (char)buffer.get());
+        if ((char)buffer.get() == 'y'){
+            buffer.rewind();
+            sc.read(buffer);
+        }
 
+        sc.shutdownOutput();
+        sc.close();
     }
 
     private ByteBuffer initialize(String[] command){
@@ -85,8 +95,12 @@ public class Client {
         return ByteBuffer.wrap(b);
     }
 
+    private void initialize(String fileName){
+        this.file = new InitializedFile(fileName);
+    }
+
     private void upload(String[] command) throws IOException {
-        String instruction = "u" + file.name;
+        String instruction = "u" + file.name + " " + file.content;
         byte[] b = new byte[2048];
         b = instruction.getBytes();
         ByteBuffer buffer = ByteBuffer.wrap(b);
@@ -95,7 +109,9 @@ public class Client {
         buffer.flip();
         System.out.println("Message from the server: " + (char)buffer.get());
         if ((char)buffer.get() == 'y'){
-            buffer.rewind();
+            buffer.flip();
+            b = file.content.getBytes();
+            buffer = ByteBuffer.wrap(b);
             sc.write(buffer);
         }
 

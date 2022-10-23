@@ -36,19 +36,7 @@ public class Server {
             File file;
             switch (clientCommand) {
                 case 'u':
-                    fileNameAsBytes = new byte[clientMessage.remaining()];
-                    clientMessage.get(fileNameAsBytes);
-                    fileName = new String(fileNameAsBytes);
-                    file = new File("./uploaded/" + fileName);
-
-                    if(!file.exists()) {
-                        sendReplyCode(serveChannel, 'y');
-                        uploadFile(file);
-                    }else{
-                        sendReplyCode(serveChannel, 'n');
-                        System.out.println("\nUpload failed, file exists.");
-                    }
-
+                    upload(serveChannel, clientMessage);
                     break;
                 case 'd':
                     fileNameAsBytes = new byte[clientMessage.remaining()];
@@ -125,13 +113,36 @@ public class Server {
         return buffer;
     }
 
+    private static void upload(SocketChannel serveChannel, ByteBuffer clientMessage) throws IOException {
+        byte[] fileAsBytes = new byte[clientMessage.remaining()];
+        clientMessage.get(fileAsBytes);
+        String fileString = new String(fileAsBytes);
+        String[] fileStringArray = fileString.split(" ", 2);
+        File file = new File("./uploaded/" + fileStringArray[0]);
 
-    private static void uploadFile(File file) throws IOException {
+        if(!file.exists()) {
+            sendReplyCode(serveChannel, 'y');
+            uploadFile(file, fileStringArray);
+
+        }else{
+            sendReplyCode(serveChannel, 'n');
+            System.out.println("\nUpload failed, file exists.");
+        }
+
+
+    }
+    private static void uploadFile(File file, String[] fileArray) throws IOException {
         System.out.println("file created");
         Files.createDirectories(Paths.get("./uploaded"));
         //make sure to set the "append" flag to true
         BufferedWriter bw = new BufferedWriter(new FileWriter(file, true));
+        bw.write(fileArray[1]);
+        bw.flush();
+        System.out.println(fileArray[1]);
+
     }
+
+
 
 
     private static void downloadFile(SocketChannel serveChannel, File file) throws IOException {
