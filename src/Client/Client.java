@@ -87,7 +87,8 @@ public class Client {
     }
 
     private ByteBuffer initialize(String[] command){
-        File file = new File(command[1]);
+        String path = "initialized./" + command[1];
+        File file = new File(path);
         this.file = new InitializedFile(file.getName(), file);
         char c = 'i';
         byte[] b = new byte[1];
