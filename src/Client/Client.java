@@ -2,16 +2,12 @@ package Client;
 
 
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
 
 public class Client {
 
@@ -144,15 +140,9 @@ public class Client {
     }
 
     private void save() throws IOException {
-        final String content = this.file.content;
-        final Path path = Paths.get(String.format("%s", this.file.name));
-
-        try (
-                final BufferedWriter writer = Files.newBufferedWriter(path,
-                        StandardCharsets.UTF_8, StandardOpenOption.CREATE);
-        ) {
-            writer.write(content);
-            writer.flush();
-        }
+        final String content = file.content;
+        String path = "./initialized/" + file.name;
+        File file = new File(String.valueOf(path));
+        file.createNewFile();
     }
 }
