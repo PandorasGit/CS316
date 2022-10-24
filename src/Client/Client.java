@@ -44,11 +44,11 @@ public class Client {
                 save();
                 return "File set, ready to upload";
             case "u":
-                upload(command);
+                upload();
                 return "Upload sent";
             case "d":
-                download(command);
-                return "Download comment sent";
+
+                return download();
             case "k":
                 delete(command);
                 return "";
@@ -76,6 +76,7 @@ public class Client {
         sc.read(buffer);
         buffer.flip();
         System.out.println("Message from the server: " + (char)buffer.get());
+        
         if ((char)buffer.get() == 'y'){
             buffer.flip();
             b = file.content.getBytes();
@@ -87,22 +88,28 @@ public class Client {
         sc.close();
     }
 
-    private void download(String[] command) throws IOException {
-        String instruction = "d" + command[1];
+    private String download() throws IOException {
+        String instruction = "d";
         byte[] b = new byte[2048];
         b = instruction.getBytes();
         ByteBuffer buffer = ByteBuffer.wrap(b);
         sc.write(buffer);
         sc.read(buffer);
-        buffer.flip();
-        System.out.println("Message from the server: " + (char)buffer.get());
-        if ((char)buffer.get() == 'y'){
-            buffer.rewind();
-            sc.read(buffer);
+        sc.shutdownOutput();
+
+        char reply = getServerCode(sc);;
+        System.out.println("Can be downloaded: " + reply);
+        if (reply == 'y'){
+            sc.shutdownOutput();
+            sc.close();
+            return "Downloaded";
+        }
+        else {
+            sc.shutdownOutput();
+            sc.close();
+            return "Download failed";
         }
 
-        sc.shutdownOutput();
-        sc.close();
     }
 
     private ByteBuffer initialize(String[] command){
@@ -119,7 +126,7 @@ public class Client {
         this.file = new InitializedFile(fileName);
     }
 
-    private void upload(String[] command) throws IOException {
+    private void upload() throws IOException {
         String instruction = "u" + file.name + " " + file.content;
         byte[] b = new byte[2048];
         b = instruction.getBytes();
@@ -144,5 +151,24 @@ public class Client {
         String path = "./initialized/" + file.name;
         File file = new File(String.valueOf(path));
         file.createNewFile();
+    }
+
+    private static char getServerCode(SocketChannel channel) throws IOException{
+        ByteBuffer buffer = ByteBuffer.allocate(1);
+        int bytesToRead = 1;
+
+        //make sure we read the entire server reply
+        while((bytesToRead -= channel.read(buffer)) > 0);
+
+        //before reading from buffer, flip buffer
+        buffer.flip();
+        byte[] a = new byte[1];
+        //copy bytes from buffer to array
+        buffer.get(a);
+        char serverReplyCode = new String(a).charAt(0);
+
+        System.out.println(serverReplyCode);
+
+        return serverReplyCode;
     }
 }
