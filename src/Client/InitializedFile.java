@@ -30,7 +30,7 @@ public class InitializedFile {
             return file_content;
 
         } catch (FileNotFoundException e) {
-            e.printStackTrace();
+            System.out.println("Creating new file");
             return "No Content";
         }
     }

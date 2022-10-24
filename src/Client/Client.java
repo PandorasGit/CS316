@@ -72,7 +72,7 @@ public class Client {
     }
 
     private void delete(String[] command) throws IOException {
-        String instruction = "k" + "a.txt";
+        String instruction = "k" + file.name;
         byte[] b = new byte[2048];
         b = instruction.getBytes();
         ByteBuffer buffer = ByteBuffer.wrap(b);
