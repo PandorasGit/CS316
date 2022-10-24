@@ -53,6 +53,9 @@ public class Client {
             case "d":
                 download(command);
                 return "Download comment sent";
+            case "k":
+                delete(command);
+                return "";
             default:
                 System.out.println("no valid command");
         }
@@ -66,6 +69,26 @@ public class Client {
         sc.shutdownOutput();
         sc.close();
         return "Default Return";
+    }
+
+    private void delete(String[] command) throws IOException {
+        String instruction = "k" + "a.txt";
+        byte[] b = new byte[2048];
+        b = instruction.getBytes();
+        ByteBuffer buffer = ByteBuffer.wrap(b);
+        sc.write(buffer);
+        sc.read(buffer);
+        buffer.flip();
+        System.out.println("Message from the server: " + (char)buffer.get());
+        if ((char)buffer.get() == 'y'){
+            buffer.flip();
+            b = file.content.getBytes();
+            buffer = ByteBuffer.wrap(b);
+            sc.write(buffer);
+        }
+
+        sc.shutdownOutput();
+        sc.close();
     }
 
     private void download(String[] command) throws IOException {
