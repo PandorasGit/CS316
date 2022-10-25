@@ -76,7 +76,7 @@ public class Client {
         sc.read(buffer);
         buffer.flip();
         System.out.println("Message from the server: " + (char)buffer.get());
-        
+
         if ((char)buffer.get() == 'y'){
             buffer.flip();
             b = file.content.getBytes();
