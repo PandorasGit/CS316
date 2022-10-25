@@ -1,7 +1,5 @@
 package Server;
 
-import Client.InitializedFile;
-
 import java.io.*;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
@@ -15,7 +13,6 @@ import java.nio.file.Paths;
 public class Server {
 
     private static final int MAX_CLIENT_MESSAGE_LENGTH = 2048;
-    private static InitializedFile initializedFile;
 
     public static void main(String[] args) throws IOException {
         verifyArgs(args);
@@ -84,8 +81,7 @@ public class Server {
 
                     break;
                 case 'l':
-                    listFiles();
-                    sendReplyCode(serveChannel, 'l');
+                    listFiles(serveChannel);
                     break;
                 case 's':
                     System.out.println("client sent s");
@@ -113,6 +109,7 @@ public class Server {
         return buffer;
     }
 
+
     private static void upload(SocketChannel serveChannel, ByteBuffer clientMessage) throws IOException {
         byte[] fileAsBytes = new byte[clientMessage.remaining()];
         clientMessage.get(fileAsBytes);
@@ -123,14 +120,15 @@ public class Server {
         if(!file.exists()) {
             sendReplyCode(serveChannel, 'y');
             uploadFile(file, fileStringArray);
+            addFileToListCSV(fileStringArray);
 
         }else{
             sendReplyCode(serveChannel, 'n');
             System.out.println("\nUpload failed, file exists.");
         }
-
-
     }
+
+
     private static void uploadFile(File file, String[] fileArray) throws IOException {
         System.out.println("file created");
         Files.createDirectories(Paths.get("./uploaded"));
@@ -139,10 +137,16 @@ public class Server {
         bw.write(fileArray[1]);
         bw.flush();
         System.out.println(fileArray[1]);
-
     }
 
 
+    private static void addFileToListCSV(String[] fileArray) throws IOException {
+        String fileName = fileArray[0];
+        try (FileWriter writer = new FileWriter("./uploaded/fileCsvList.csv", true)) {
+            writer.append(fileName).append(",\n");
+            writer.flush();
+        }
+    }
 
 
     private static void downloadFile(SocketChannel serveChannel, File file) throws IOException {
@@ -172,8 +176,20 @@ public class Server {
     }
 
 
-    private static void listFiles() {
-        System.out.println("list: ");
+    private static void listFiles(SocketChannel serveChannel) throws IOException {
+        BufferedReader csvReader = new BufferedReader(new FileReader("./uploaded/fileCsvList.csv"));
+        String fileListAsString = "";
+        String currentRow;
+
+        while ((currentRow = csvReader.readLine()) != null) {
+            String[] data = currentRow.split(",");
+            fileListAsString = fileListAsString.concat(data[0] + ", ");
+        }
+        csvReader.close();
+
+        byte[] fileListAsBytes = fileListAsString.getBytes();
+        ByteBuffer buffer = ByteBuffer.wrap(fileListAsBytes);
+        serveChannel.write(buffer);
     }
 
 
