@@ -39,7 +39,7 @@ public class Server {
                     fileNameAsBytes = new byte[clientMessage.remaining()];
                     clientMessage.get(fileNameAsBytes);
                     fileName = new String(fileNameAsBytes);
-                    file = new File(fileName);
+                    file = new File("./uploaded/"+ fileName);
 
                     if(!file.exists() || file.isDirectory()) {
                         System.out.println("File does not exist, or does exist and is a directory.");
