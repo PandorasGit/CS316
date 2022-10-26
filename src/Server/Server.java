@@ -160,6 +160,7 @@ public class Server {
             //send bytes to client
             serveChannel.write(ByteBuffer.wrap(line.getBytes()));
         }
+        serveChannel.shutdownOutput();
     }
 
 
