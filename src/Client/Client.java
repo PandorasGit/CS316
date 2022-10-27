@@ -24,19 +24,16 @@ public class Client {
     public Client(int serverPort, InetAddress serverIP) throws IOException {
         this.serverPort = serverPort;
         this.serverIP = serverIP;
-        this.sc = connect();
     }
 
-    public SocketChannel connect() throws IOException {
-        SocketChannel sc = SocketChannel.open();
+    public void connect() throws IOException {
+        this.sc = SocketChannel.open();
         //blocking call
         sc.connect(new InetSocketAddress(serverIP,serverPort));
-        return sc;
     }
 
 
     public String service(String[] command) throws IOException {
-
         char c = 's';
         byte[] b = new byte[1];
         b[0] = (byte) c;
@@ -51,7 +48,6 @@ public class Client {
                 upload();
                 return "Upload sent";
             case "d":
-
                 return download();
             case "k":
                 delete(command);

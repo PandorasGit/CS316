@@ -48,7 +48,6 @@ public class Server {
                         sendReplyCode(serveChannel, 'y');
                         downloadFile(serveChannel, file);
                     }
-
                     break;
                 case 'k':
                     fileNameAsBytes = new byte[clientMessage.remaining()];
@@ -63,7 +62,6 @@ public class Server {
                         System.out.println("File does not exist");
                         sendReplyCode(serveChannel, 'n');
                     }
-
                     break;
                 case 'r':
                     fileNameAsBytes = new byte[clientMessage.remaining()];

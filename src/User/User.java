@@ -22,12 +22,14 @@ public class User {
 
         Client client = new Client(Integer.parseInt(args[0]), InetAddress.getByName(args[1]));
         System.out.println("File system!");
-        client.connect();
         while(true) {
             System.out.println("Enter a command for the File System :");
             Scanner keyboard = new Scanner(System.in);
             String command = keyboard.nextLine();
             String[] command_array = user.parseCommand(command);
+            if (!command_array[0].equals("i")) {
+                client.connect();
+            }
             System.out.println(client.service(command_array));
         }
 
