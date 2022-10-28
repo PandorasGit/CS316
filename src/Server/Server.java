@@ -33,8 +33,30 @@ public class Server {
             File file;
             switch (clientCommand) {
                 case 'u':
-                    upload(serveChannel, clientMessage);
+                    byte[] fileAsBytes = new byte[clientMessage.remaining()];
+                    clientMessage.get(fileAsBytes);
+                    String fileString = new String(fileAsBytes);
+                    String[] fileStringArray = fileString.split(" ", 2);
+                    file = new File("./uploaded/" + fileStringArray[0]);
+
+                    if(!file.exists()) {
+                        sendReplyCode(serveChannel, 'y');
+                        System.out.println("file created");
+                        Files.createDirectories(Paths.get("./uploaded"));
+                        //make sure to set the "append" flag to true
+                        BufferedWriter bw = new BufferedWriter(new FileWriter(file, true));
+                        bw.write(fileStringArray[1]);
+                        bw.flush();
+                        bw.close();
+                        System.out.println(fileStringArray[1]);
+                        addFileToListCSV(fileStringArray);
+
+                    }else{
+                        sendReplyCode(serveChannel, 'n');
+                        System.out.println("\nUpload failed, file exists.");
+                    }
                     break;
+
                 case 'd':
                     fileNameAsBytes = new byte[clientMessage.remaining()];
                     clientMessage.get(fileNameAsBytes);
@@ -49,6 +71,7 @@ public class Server {
                         downloadFile(serveChannel, file);
                     }
                     break;
+
                 case 'k':
                     fileNameAsBytes = new byte[clientMessage.remaining()];
                     clientMessage.get(fileNameAsBytes);
@@ -63,6 +86,7 @@ public class Server {
                         sendReplyCode(serveChannel, 'n');
                     }
                     break;
+
                 case 'r':
                     fileNameAsBytes = new byte[clientMessage.remaining()];
                     clientMessage.get(fileNameAsBytes);
@@ -76,17 +100,17 @@ public class Server {
                         System.out.println("File does not exist");
                         sendReplyCode(serveChannel, 'n');
                     }
-
                     break;
+
                 case 'l':
                     listFiles(serveChannel);
                     break;
-                case 's':
-                    System.out.println("client sent s");
-                    sendReplyCode(serveChannel, 's');
+
+                default:
+                    serveChannel.close();
+                    System.out.println("");
                     break;
             }
-            serveChannel.close();
         }
     }
 
@@ -105,37 +129,6 @@ public class Server {
         buffer.flip();
 
         return buffer;
-    }
-
-
-    private static void upload(SocketChannel serveChannel, ByteBuffer clientMessage) throws IOException {
-        byte[] fileAsBytes = new byte[clientMessage.remaining()];
-        clientMessage.get(fileAsBytes);
-        String fileString = new String(fileAsBytes);
-        String[] fileStringArray = fileString.split(" ", 2);
-        File file = new File("./uploaded/" + fileStringArray[0]);
-
-        if(!file.exists()) {
-            sendReplyCode(serveChannel, 'y');
-            uploadFile(file, fileStringArray);
-            addFileToListCSV(fileStringArray);
-
-        }else{
-            sendReplyCode(serveChannel, 'n');
-            System.out.println("\nUpload failed, file exists.");
-        }
-    }
-
-
-    private static void uploadFile(File file, String[] fileArray) throws IOException {
-        System.out.println("file created");
-        Files.createDirectories(Paths.get("./uploaded"));
-        //make sure to set the "append" flag to true
-        BufferedWriter bw = new BufferedWriter(new FileWriter(file, true));
-        bw.write(fileArray[1]);
-        bw.flush();
-        bw.close();
-        System.out.println(fileArray[1]);
     }
 
 

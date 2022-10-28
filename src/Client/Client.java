@@ -54,15 +54,12 @@ public class Client {
                 return "";
             default:
                 System.out.println("no valid command");
+                byte[] a = new byte[1];
+                a[0] = 's';
+                ByteBuffer data = ByteBuffer.wrap(a);
+                sc.write(data);
         }
 
-
-        sc.write(buffer);
-        sc.read(buffer);
-        buffer.flip();
-        System.out.println("Message from the server: " + (char)buffer.get());
-        buffer.rewind();
-        sc.shutdownOutput();
         sc.close();
         return "Default Return";
     }
@@ -73,18 +70,18 @@ public class Client {
         b = instruction.getBytes();
         ByteBuffer buffer = ByteBuffer.wrap(b);
         sc.write(buffer);
+        sc.shutdownOutput();
+        buffer.clear();
         sc.read(buffer);
         buffer.flip();
-        System.out.println("Message from the server: " + (char)buffer.get());
-
-        if ((char)buffer.get() == 'y'){
-            buffer.flip();
-            b = file.content.getBytes();
-            buffer = ByteBuffer.wrap(b);
-            sc.write(buffer);
+        char serverMessage = (char)buffer.get();
+        System.out.println("Message from the server: " + serverMessage);
+        if (serverMessage == 'y'){
+            System.out.println("Delete successful");
+        }else{
+            System.out.println("Delete failed");
         }
 
-        sc.shutdownOutput();
         sc.close();
     }
 
@@ -151,17 +148,17 @@ public class Client {
         b = instruction.getBytes();
         ByteBuffer buffer = ByteBuffer.wrap(b);
         sc.write(buffer);
+        sc.shutdownOutput();
+        buffer.clear();
         sc.read(buffer);
         buffer.flip();
-        System.out.println("Message from the server: " + (char)buffer.get());
-        if ((char)buffer.get() == 'y'){
-            buffer.flip();
-            b = file.content.getBytes();
-            buffer = ByteBuffer.wrap(b);
-            sc.write(buffer);
+        char serverMessage = (char)buffer.get();
+        System.out.println("Message from the server: " + serverMessage);
+        if (serverMessage == 'y'){
+            System.out.println("Upload successful");
+        }else{
+            System.out.println("Upload failed");
         }
-
-        sc.shutdownOutput();
         sc.close();
     }
 
