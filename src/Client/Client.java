@@ -45,12 +45,82 @@ public class Client {
                 saveInitialized();
                 return "File set, ready to upload";
             case "u":
-                upload();
-                return "Upload sent";
+                String instruction = "u" + file.name + " " + file.content;
+                b = new byte[2048];
+                b = instruction.getBytes();
+                buffer = ByteBuffer.wrap(b);
+                sc.write(buffer);
+                sc.shutdownOutput();
+                buffer.clear();
+                sc.read(buffer);
+                buffer.flip();
+                char serverMessage = (char)buffer.get();
+                System.out.println("Message from the server: " + serverMessage);
+                sc.close();
+                if (serverMessage == 'y'){
+                    return "Upload successful";
+                }else{
+                    return "Upload failed";
+                }
             case "d":
-                return download();
+                instruction = "d" + file.name;
+                b = new byte[2048];
+                b = instruction.getBytes();
+                buffer = ByteBuffer.wrap(b);
+                sc.write(buffer);
+                sc.read(buffer);
+                sc.shutdownOutput();
+
+                char reply = getServerCode(sc);;
+                System.out.println("Can be downloaded: " + reply);
+                if (reply == 'y'){
+                    System.out.println("The request was accepted");
+                    Files.createDirectories(Paths.get("./downloaded"));
+                    //make sure to set the "append" flag to true
+                    BufferedWriter bw = new BufferedWriter(new FileWriter("./downloaded/"+file.name, true));
+                    ByteBuffer data = ByteBuffer.allocate(1024);
+                    int bytesRead;
+
+                    while ((bytesRead = sc.read(data)) != -1) {
+                        //before reading from buffer, flip buffer
+                        //("limit" set to current position, "position" set to zero)
+                        data.flip();
+                        byte[] a = new byte[bytesRead];
+                        //copy bytes from buffer to array
+                        //(all bytes between "position" and "limit" are copied)
+                        data.get(a);
+                        String fileString = new String(a);
+                        bw.write(fileString);
+                        data.clear();
+                    }
+                    bw.close();
+
+                    return "Downloaded";
+                }
+                else {
+                    sc.shutdownOutput();
+                    sc.close();
+                    return "Download failed";
+                }
             case "k":
-                delete(command);
+                instruction = "k" + file.name;
+                b = new byte[2048];
+                b = instruction.getBytes();
+                buffer = ByteBuffer.wrap(b);
+                sc.write(buffer);
+                sc.shutdownOutput();
+                buffer.clear();
+                sc.read(buffer);
+                buffer.flip();
+                serverMessage = (char)buffer.get();
+                System.out.println("Message from the server: " + serverMessage);
+                if (serverMessage == 'y'){
+                    System.out.println("Delete successful");
+                }else{
+                    System.out.println("Delete failed");
+                }
+
+                sc.close();
                 return "";
             default:
                 System.out.println("no valid command");
@@ -64,69 +134,7 @@ public class Client {
         return "Default Return";
     }
 
-    private void delete(String[] command) throws IOException {
-        String instruction = "k" + file.name;
-        byte[] b = new byte[2048];
-        b = instruction.getBytes();
-        ByteBuffer buffer = ByteBuffer.wrap(b);
-        sc.write(buffer);
-        sc.shutdownOutput();
-        buffer.clear();
-        sc.read(buffer);
-        buffer.flip();
-        char serverMessage = (char)buffer.get();
-        System.out.println("Message from the server: " + serverMessage);
-        if (serverMessage == 'y'){
-            System.out.println("Delete successful");
-        }else{
-            System.out.println("Delete failed");
-        }
 
-        sc.close();
-    }
-
-    private String download() throws IOException {
-        String instruction = "d" + file.name;
-        byte[] b = new byte[2048];
-        b = instruction.getBytes();
-        ByteBuffer buffer = ByteBuffer.wrap(b);
-        sc.write(buffer);
-        sc.read(buffer);
-        sc.shutdownOutput();
-
-        char reply = getServerCode(sc);;
-        System.out.println("Can be downloaded: " + reply);
-        if (reply == 'y'){
-            System.out.println("The request was accepted");
-            Files.createDirectories(Paths.get("./downloaded"));
-            //make sure to set the "append" flag to true
-            BufferedWriter bw = new BufferedWriter(new FileWriter("./downloaded/"+file.name, true));
-            ByteBuffer data = ByteBuffer.allocate(1024);
-            int bytesRead;
-
-            while ((bytesRead = sc.read(data)) != -1) {
-                //before reading from buffer, flip buffer
-                //("limit" set to current position, "position" set to zero)
-                data.flip();
-                byte[] a = new byte[bytesRead];
-                //copy bytes from buffer to array
-                //(all bytes between "position" and "limit" are copied)
-                data.get(a);
-                String serverMessage = new String(a);
-                bw.write(serverMessage);
-                data.clear();
-            }
-            bw.close();
-
-            return "Downloaded";
-        }
-        else {
-            sc.shutdownOutput();
-            sc.close();
-            return "Download failed";
-        }
-
-    }
 
     private ByteBuffer initialize(String[] command){
         String path = "initialized./" + command[1];
@@ -138,29 +146,6 @@ public class Client {
         return ByteBuffer.wrap(b);
     }
 
-    private void initialize(String fileName){
-        this.file = new InitializedFile(fileName);
-    }
-
-    private void upload() throws IOException {
-        String instruction = "u" + file.name + " " + file.content;
-        byte[] b = new byte[2048];
-        b = instruction.getBytes();
-        ByteBuffer buffer = ByteBuffer.wrap(b);
-        sc.write(buffer);
-        sc.shutdownOutput();
-        buffer.clear();
-        sc.read(buffer);
-        buffer.flip();
-        char serverMessage = (char)buffer.get();
-        System.out.println("Message from the server: " + serverMessage);
-        if (serverMessage == 'y'){
-            System.out.println("Upload successful");
-        }else{
-            System.out.println("Upload failed");
-        }
-        sc.close();
-    }
 
     private void saveInitialized() throws IOException {
         final String content = file.content;
