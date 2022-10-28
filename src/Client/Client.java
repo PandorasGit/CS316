@@ -15,13 +15,13 @@ import java.nio.file.Paths;
 
 public class Client {
 
-    private static int maxDataSize = 2048;
+
     private final int serverPort;
     private final InetAddress serverIP;
     private SocketChannel sc;
     private InitializedFile file;
 
-    public Client(int serverPort, InetAddress serverIP) throws IOException {
+    public Client(int serverPort, InetAddress serverIP) {
         this.serverPort = serverPort;
         this.serverIP = serverIP;
     }
@@ -41,7 +41,7 @@ public class Client {
 
         switch (command[0]){
             case "i":
-                buffer = initialize(command);
+                initialize(command);
                 saveInitialized();
                 return "File set, ready to upload";
             case "u":
@@ -71,7 +71,7 @@ public class Client {
                 sc.read(buffer);
                 sc.shutdownOutput();
 
-                char reply = getServerCode(sc);;
+                char reply = getServerCode(sc);
                 System.out.println("Can be downloaded: " + reply);
                 if (reply == 'y'){
                     System.out.println("The request was accepted");
@@ -95,7 +95,7 @@ public class Client {
                     }
                     bw.close();
 
-                    return "Downloaded";
+                    return "Download Successful";
                 }
                 else {
                     sc.shutdownOutput();
@@ -114,14 +114,36 @@ public class Client {
                 buffer.flip();
                 serverMessage = (char)buffer.get();
                 System.out.println("Message from the server: " + serverMessage);
-                if (serverMessage == 'y'){
-                    System.out.println("Delete successful");
-                }else{
-                    System.out.println("Delete failed");
-                }
-
                 sc.close();
-                return "";
+                if (serverMessage == 'y'){
+                    return "Delete Successful";
+                }else{
+                    return "Delete Failed";
+                }
+            case "r":
+                try{
+                    instruction = "k" + file.name + " " + command[1];
+                    b = new byte[2048];
+                    b = instruction.getBytes();
+                    buffer = ByteBuffer.wrap(b);
+                    sc.write(buffer);
+                    sc.shutdownOutput();
+                    buffer.clear();
+                    buffer.clear();
+                    sc.read(buffer);
+                    buffer.flip();
+                    serverMessage = (char)buffer.get();
+                    System.out.println("Message from the server: " + serverMessage);
+                    sc.close();
+                    if (serverMessage == 'y'){
+                        return "Rename Successful";
+                    }else{
+                        return "Rename Failed";
+                    }
+                } catch (ArrayIndexOutOfBoundsException e){
+                    sc.close();
+                    return "Rename syntax error. Initialize the file you want to rename then use\nrename -<New Name>";
+                }
             default:
                 System.out.println("no valid command");
                 byte[] a = new byte[1];
@@ -136,21 +158,16 @@ public class Client {
 
 
 
-    private ByteBuffer initialize(String[] command){
+    private void initialize(String[] command){
         String path = "initialized./" + command[1];
         File file = new File(path);
         this.file = new InitializedFile(file.getName(), file);
-        char c = 'i';
-        byte[] b = new byte[1];
-        b[0] = (byte) c;
-        return ByteBuffer.wrap(b);
     }
 
 
     private void saveInitialized() throws IOException {
-        final String content = file.content;
         String path = "./initialized/" + file.name;
-        File file = new File(String.valueOf(path));
+        File file = new File(path);
         file.createNewFile();
     }
 

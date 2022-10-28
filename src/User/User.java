@@ -55,6 +55,7 @@ public class User {
                 case "upload" -> "u";
                 case "download" -> "d";
                 case "delete" -> "k";
+                case "rename" -> "r";
                 default -> "n";
             };
     }
