@@ -134,6 +134,7 @@ public class Server {
         BufferedWriter bw = new BufferedWriter(new FileWriter(file, true));
         bw.write(fileArray[1]);
         bw.flush();
+        bw.close();
         System.out.println(fileArray[1]);
     }
 
@@ -162,7 +163,7 @@ public class Server {
     }
 
 
-    private static void deleteFile(File file) throws IOException{
+    private static void deleteFile(File file) {
         //Tries deleting the file and checks if it was successful
         if(file.delete()) {
             System.out.println("File deleted.");
