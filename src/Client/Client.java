@@ -39,7 +39,7 @@ public class Client {
         b[0] = (byte) c;
         ByteBuffer buffer = ByteBuffer.wrap(b);
 
-        switch (command[0]){
+        switch (command[0]) {
             case "i":
                 initialize(command);
                 saveInitialized();
@@ -54,12 +54,12 @@ public class Client {
                 buffer.clear();
                 sc.read(buffer);
                 buffer.flip();
-                char serverMessage = (char)buffer.get();
+                char serverMessage = (char) buffer.get();
                 System.out.println("Message from the server: " + serverMessage);
                 sc.close();
-                if (serverMessage == 'y'){
+                if (serverMessage == 'y') {
                     return "Upload successful";
-                }else{
+                } else {
                     return "Upload failed";
                 }
             case "d":
@@ -73,11 +73,11 @@ public class Client {
 
                 char reply = getServerCode(sc);
                 System.out.println("Can be downloaded: " + reply);
-                if (reply == 'y'){
+                if (reply == 'y') {
                     System.out.println("The request was accepted");
                     Files.createDirectories(Paths.get("./downloaded"));
                     //make sure to set the "append" flag to true
-                    BufferedWriter bw = new BufferedWriter(new FileWriter("./downloaded/"+file.name, true));
+                    BufferedWriter bw = new BufferedWriter(new FileWriter("./downloaded/" + file.name, true));
                     ByteBuffer data = ByteBuffer.allocate(1024);
                     int bytesRead;
 
@@ -96,8 +96,7 @@ public class Client {
                     bw.close();
 
                     return "Download Successful";
-                }
-                else {
+                } else {
                     sc.shutdownOutput();
                     sc.close();
                     return "Download failed";
@@ -112,16 +111,16 @@ public class Client {
                 buffer.clear();
                 sc.read(buffer);
                 buffer.flip();
-                serverMessage = (char)buffer.get();
+                serverMessage = (char) buffer.get();
                 System.out.println("Message from the server: " + serverMessage);
                 sc.close();
-                if (serverMessage == 'y'){
+                if (serverMessage == 'y') {
                     return "Delete Successful";
-                }else{
+                } else {
                     return "Delete Failed";
                 }
             case "r":
-                try{
+                try {
                     instruction = "r" + file.name + " " + command[1];
                     b = new byte[2048];
                     b = instruction.getBytes();
@@ -129,31 +128,52 @@ public class Client {
                     sc.write(buffer);
                     sc.shutdownOutput();
                     buffer.clear();
-                    buffer.clear();
                     sc.read(buffer);
                     buffer.flip();
-                    serverMessage = (char)buffer.get();
+                    serverMessage = (char) buffer.get();
                     System.out.println("Message from the server: " + serverMessage);
                     sc.close();
-                    if (serverMessage == 'y'){
+                    if (serverMessage == 'y') {
                         return "Rename Successful";
-                    }else{
+                    } else {
                         return "Rename Failed";
                     }
-                } catch (ArrayIndexOutOfBoundsException e){
+                } catch (ArrayIndexOutOfBoundsException e) {
                     sc.close();
                     return "Rename syntax error. Initialize the file you want to rename then use\nrename -<New Name>";
                 }
-            default:
-                System.out.println("no valid command");
+            case "l":
                 byte[] a = new byte[1];
+                a[0] = 'l';
+                buffer = ByteBuffer.wrap(a);
+                sc.write(buffer);
+                sc.shutdownOutput();
+                buffer.clear();
+                ByteBuffer serverReply = ByteBuffer.allocate(1024);
+                int bytesRead;
+                String list ="";
+                while ((bytesRead = sc.read(serverReply)) != -1) {
+                    //before reading from buffer, flip buffer
+                    //("limit" set to current position, "position" set to zero)
+                    serverReply.flip();
+                    byte[] listBytes = new byte[bytesRead];
+                    //copy bytes from buffer to array
+                    //(all bytes between "position" and "limit" are copied)
+                    serverReply.get(listBytes);
+                    String fileString = new String(listBytes);
+                    list += list + fileString;
+                    serverReply.clear();
+                }
+                return "Files in the server:" + list;
+
+            default:
+                a = new byte[1];
                 a[0] = 's';
                 ByteBuffer data = ByteBuffer.wrap(a);
                 sc.write(data);
+                sc.close();
+                return "no valid command";
         }
-
-        sc.close();
-        return "Default Return";
     }
 
 
