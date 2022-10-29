@@ -49,7 +49,7 @@ public class Server {
                         bw.flush();
                         bw.close();
                         System.out.println(fileStringArray[1]);
-                        addFileToListCSV(fileStringArray);
+                        addFileToListCSV(fileStringArray[0]);
 
                     }else{
                         sendReplyCode(serveChannel, 'n');
@@ -114,6 +114,10 @@ public class Server {
                     //Check if the file exists, and then renames it
                     if(oldFilePath.toFile().exists()) {
                         Files.move(oldFilePath, renamedFilePath);
+                        //removes old file name from the list
+                        removeFileFromListCSV(fileNameArray[0]);
+                        //adds the new file name to the list
+                        addFileToListCSV(fileNameArray[1]);
                         System.out.println("Rename successful");
                         sendReplyCode(serveChannel, 'y');
                     }else{
@@ -152,8 +156,8 @@ public class Server {
         String fileListAsString = "";
         String currentRow;
         while ((currentRow = csvReader.readLine()) != null) {
-            if(currentRow.equals(fileName + ",")) {
-                System.out.println("File removed from list");
+            if((currentRow.equals(fileName + ",")) || currentRow.equals(",")) {
+                System.out.println("The current row: " + currentRow);
             }else{
                 String[] data = currentRow.split(",");
                 fileListAsString = fileListAsString.concat(data[0] + ",");
@@ -167,6 +171,14 @@ public class Server {
             writer.append(nameString).append(",\n");
         }
         writer.flush();
+    }
+
+
+    private static void addFileToListCSV(String fileName) throws IOException {
+        try (FileWriter writer = new FileWriter("./uploaded/fileCsvList.csv", true)) {
+            writer.append(fileName).append(",\n");
+            writer.flush();
+        }
     }
 
 
@@ -186,34 +198,7 @@ public class Server {
         return buffer;
     }
 
-
-    private static void addFileToListCSV(String[] fileArray) throws IOException {
-        String fileName = fileArray[0];
-        try (FileWriter writer = new FileWriter("./uploaded/fileCsvList.csv", true)) {
-            writer.append(fileName).append(",\n");
-            writer.flush();
-        }
-    }
-
-
-    private static void listFiles(SocketChannel serveChannel) throws IOException {
-        BufferedReader csvReader = new BufferedReader(new FileReader("./uploaded/fileCsvList.csv"));
-        String fileListAsString = "";
-        String currentRow;
-
-        while ((currentRow = csvReader.readLine()) != null) {
-            String[] data = currentRow.split(",");
-            fileListAsString = fileListAsString.concat(data[0] + ", ");
-        }
-        csvReader.close();
-
-        byte[] fileListAsBytes = fileListAsString.getBytes();
-        ByteBuffer buffer = ByteBuffer.wrap(fileListAsBytes);
-        serveChannel.write(buffer);
-        serveChannel.shutdownOutput();
-    }
-
-
+    
     private static void sendReplyCode(SocketChannel serveChannel, char code) throws IOException {
         byte[] a = new byte[1];
         a[0] = (byte)code;
