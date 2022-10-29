@@ -68,7 +68,17 @@ public class Server {
                         sendReplyCode(serveChannel, 'n');
                     }else{
                         sendReplyCode(serveChannel, 'y');
-                        downloadFile(serveChannel, file);
+                        System.out.println("file sent to client");
+                        //send file to client assumed as text
+                        BufferedReader reader = new BufferedReader(new FileReader(file));
+                        String line;
+                        //loops until entire file has been read and sent to the client
+                        while((line = reader.readLine()) != null) {
+                            line = line + "\n";
+                            //send bytes to client
+                            serveChannel.write(ByteBuffer.wrap(line.getBytes()));
+                        }
+                        serveChannel.shutdownOutput();
                     }
                     break;
 
@@ -79,7 +89,10 @@ public class Server {
                     file = new File("./uploaded/" + fileName);
 
                     if(file.exists()) {
-                        deleteFile(file);
+                        //Tries deleting the file and checks if it was successful
+                        if(file.delete()) {
+                            System.out.println("File deleted.");
+                        }
                         sendReplyCode(serveChannel, 'y');
                     }else{
                         System.out.println("File does not exist");
@@ -88,13 +101,19 @@ public class Server {
                     break;
 
                 case 'r':
-                    fileNameAsBytes = new byte[clientMessage.remaining()];
-                    clientMessage.get(fileNameAsBytes);
-                    fileName = new String(fileNameAsBytes);
-                    Path filePath = Path.of("./uploaded/" + fileName);
+                    byte[] fileNamesAsBytes = new byte[clientMessage.remaining()];
+                    clientMessage.get(fileNamesAsBytes);
+                    String fileNamesAsString = new String(fileNamesAsBytes);
+                    String[] fileNameArray = fileNamesAsString.split(" ", 2);
 
-                    if(filePath.toFile().exists()) {
-                        renameFile(filePath);
+                    //Create file paths for the rename operation
+                    Path oldFilePath = Path.of("./uploaded/" + fileNameArray[0]);
+                    Path renamedFilePath = Path.of("./uploaded/" + fileNameArray[1]);
+
+                    //Check if the file exists, and then renames it
+                    if(oldFilePath.toFile().exists()) {
+                        Files.move(oldFilePath, renamedFilePath);
+                        System.out.println("Rename successful");
                         sendReplyCode(serveChannel, 'y');
                     }else{
                         System.out.println("File does not exist");
@@ -103,14 +122,27 @@ public class Server {
                     break;
 
                 case 'l':
-                    listFiles(serveChannel);
+                    BufferedReader csvReader = new BufferedReader(new FileReader("./uploaded/fileCsvList.csv"));
+                    String fileListAsString = "";
+                    String currentRow;
+
+                    while ((currentRow = csvReader.readLine()) != null) {
+                        String[] data = currentRow.split(",");
+                        fileListAsString = fileListAsString.concat(data[0] + ", ");
+                    }
+                    csvReader.close();
+
+                    byte[] fileListAsBytes = fileListAsString.getBytes();
+                    ByteBuffer buffer = ByteBuffer.wrap(fileListAsBytes);
+                    serveChannel.write(buffer);
+                    serveChannel.shutdownOutput();
                     break;
 
                 default:
-                    serveChannel.close();
-                    System.out.println("");
+                    System.out.println("Not a valid command");
                     break;
             }
+            serveChannel.close();
         }
     }
 
@@ -141,32 +173,32 @@ public class Server {
     }
 
 
-    private static void downloadFile(SocketChannel serveChannel, File file) throws IOException {
-        System.out.println("file sent to client");
-        //send file to client assumed as text
-        BufferedReader reader = new BufferedReader(new FileReader(file));
-        String line;
-        //loops until entire file has been read and sent to the client
-        while((line = reader.readLine()) != null) {
-            line = line + "\n";
-            //send bytes to client
-            serveChannel.write(ByteBuffer.wrap(line.getBytes()));
-        }
-        serveChannel.shutdownOutput();
-    }
+//    private static void downloadFile(SocketChannel serveChannel, File file) throws IOException {
+//        System.out.println("file sent to client");
+//        //send file to client assumed as text
+//        BufferedReader reader = new BufferedReader(new FileReader(file));
+//        String line;
+//        //loops until entire file has been read and sent to the client
+//        while((line = reader.readLine()) != null) {
+//            line = line + "\n";
+//            //send bytes to client
+//            serveChannel.write(ByteBuffer.wrap(line.getBytes()));
+//        }
+//        serveChannel.shutdownOutput();
+//    }
 
 
-    private static void deleteFile(File file) {
-        //Tries deleting the file and checks if it was successful
-        if(file.delete()) {
-            System.out.println("File deleted.");
-        }
-    }
+//    private static void deleteFile(File file) {
+//        //Tries deleting the file and checks if it was successful
+//        if(file.delete()) {
+//            System.out.println("File deleted.");
+//        }
+//    }
 
 
-    private static void renameFile(Path filePath) throws IOException {
-        Files.move(filePath, Path.of(filePath.toString() + "_renamed"));
-    }
+//    private static void renameFile(Path filePath) throws IOException {
+//        Files.move(filePath, Path.of(filePath.toString() + "_renamed"));
+//    }
 
 
     private static void listFiles(SocketChannel serveChannel) throws IOException {
@@ -183,6 +215,7 @@ public class Server {
         byte[] fileListAsBytes = fileListAsString.getBytes();
         ByteBuffer buffer = ByteBuffer.wrap(fileListAsBytes);
         serveChannel.write(buffer);
+        serveChannel.shutdownOutput();
     }
 
 

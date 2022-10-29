@@ -122,7 +122,7 @@ public class Client {
                 }
             case "r":
                 try{
-                    instruction = "k" + file.name + " " + command[1];
+                    instruction = "r" + file.name + " " + command[1];
                     b = new byte[2048];
                     b = instruction.getBytes();
                     buffer = ByteBuffer.wrap(b);
