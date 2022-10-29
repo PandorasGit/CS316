@@ -132,8 +132,12 @@ public class Server {
                     String currentRow;
 
                     while ((currentRow = csvReader.readLine()) != null) {
-                        String[] data = currentRow.split(",");
-                        fileListAsString = fileListAsString.concat(data[0] + ", ");
+                        if((currentRow.equals(","))) {
+                            System.out.println("Row Skipped");
+                        }else{
+                            String[] data = currentRow.split(",");
+                            fileListAsString = fileListAsString.concat(data[0] + ", ");
+                        }
                     }
                     csvReader.close();
 
@@ -198,7 +202,7 @@ public class Server {
         return buffer;
     }
 
-    
+
     private static void sendReplyCode(SocketChannel serveChannel, char code) throws IOException {
         byte[] a = new byte[1];
         a[0] = (byte)code;
