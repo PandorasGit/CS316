@@ -178,7 +178,8 @@ public class Client {
 
 
 
-    private void initialize(String[] command){
+    private void initialize(String[] command) throws IOException {
+        Files.createDirectories(Paths.get("./initialized"));
         String path = "initialized./" + command[1];
         File file = new File(path);
         this.file = new InitializedFile(file.getName(), file);
@@ -186,6 +187,7 @@ public class Client {
 
 
     private void saveInitialized() throws IOException {
+        Files.createDirectories(Paths.get("./initialized"));
         String path = "./initialized/" + file.name;
         File file = new File(path);
         file.createNewFile();
