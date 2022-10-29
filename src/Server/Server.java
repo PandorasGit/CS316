@@ -79,6 +79,7 @@ public class Server {
                             serveChannel.write(ByteBuffer.wrap(line.getBytes()));
                         }
                         serveChannel.shutdownOutput();
+                        reader.close();
                     }
                     break;
 
@@ -145,6 +146,7 @@ public class Server {
                     ByteBuffer buffer = ByteBuffer.wrap(fileListAsBytes);
                     serveChannel.write(buffer);
                     serveChannel.shutdownOutput();
+                    System.out.println("File list sent");
                     break;
 
                 default:
