@@ -92,6 +92,7 @@ public class Server {
                         //Tries deleting the file and checks if it was successful
                         if(file.delete()) {
                             System.out.println("File deleted.");
+                            removeFileFromListCSV(fileName);
                         }
                         sendReplyCode(serveChannel, 'y');
                     }else{
@@ -146,6 +147,28 @@ public class Server {
         }
     }
 
+    private static void removeFileFromListCSV(String fileName) throws IOException {
+        BufferedReader csvReader = new BufferedReader(new FileReader("./uploaded/fileCsvList.csv"));
+        String fileListAsString = "";
+        String currentRow;
+        while ((currentRow = csvReader.readLine()) != null) {
+            if(currentRow.equals(fileName + ",")) {
+                System.out.println("File removed from list");
+            }else{
+                String[] data = currentRow.split(",");
+                fileListAsString = fileListAsString.concat(data[0] + ",");
+            }
+        }
+        csvReader.close();
+
+        String[] fileListArray = fileListAsString.split(",");
+        FileWriter writer = new FileWriter("./uploaded/fileCsvList.csv", false);
+        for(String nameString : fileListArray) {
+            writer.append(nameString).append(",\n");
+        }
+        writer.flush();
+    }
+
 
     private static void verifyArgs(String[] args) {
         if (args.length != 1) {
@@ -171,34 +194,6 @@ public class Server {
             writer.flush();
         }
     }
-
-
-//    private static void downloadFile(SocketChannel serveChannel, File file) throws IOException {
-//        System.out.println("file sent to client");
-//        //send file to client assumed as text
-//        BufferedReader reader = new BufferedReader(new FileReader(file));
-//        String line;
-//        //loops until entire file has been read and sent to the client
-//        while((line = reader.readLine()) != null) {
-//            line = line + "\n";
-//            //send bytes to client
-//            serveChannel.write(ByteBuffer.wrap(line.getBytes()));
-//        }
-//        serveChannel.shutdownOutput();
-//    }
-
-
-//    private static void deleteFile(File file) {
-//        //Tries deleting the file and checks if it was successful
-//        if(file.delete()) {
-//            System.out.println("File deleted.");
-//        }
-//    }
-
-
-//    private static void renameFile(Path filePath) throws IOException {
-//        Files.move(filePath, Path.of(filePath.toString() + "_renamed"));
-//    }
 
 
     private static void listFiles(SocketChannel serveChannel) throws IOException {
