@@ -31,6 +31,9 @@ public class User {
                 client.connect();
             }
             System.out.println(client.service(command_array));
+            if (command_array[0].equals("q")) {
+                break;
+            }
         }
 
     }
@@ -42,7 +45,6 @@ public class User {
         //Remove any spaces from the first section of the command
         command = command_split_array[0].strip();
         command = command.toLowerCase(Locale.ROOT);
-
 
 
         command_split_array[0] = firstCommand(command);
@@ -57,6 +59,7 @@ public class User {
                 case "delete" -> "k";
                 case "rename" -> "r";
                 case "list" -> "l";
+                case "quit" -> "q";
                 default -> "n";
             };
     }
