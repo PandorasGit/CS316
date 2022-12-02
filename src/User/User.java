@@ -31,9 +31,6 @@ public class User {
                 client.connect();
             }
             System.out.println(client.service(command_array));
-            if (command_array[0].equals("q")) {
-                break;
-            }
         }
 
     }
@@ -59,7 +56,6 @@ public class User {
                 case "delete" -> "k";
                 case "rename" -> "r";
                 case "list" -> "l";
-                case "quit" -> "q";
                 default -> "n";
             };
     }

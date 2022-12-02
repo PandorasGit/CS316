@@ -165,13 +165,6 @@ public class Client {
                     serverReply.clear();
                 }
                 return "Files in the server:" + list;
-            case "q":
-                a = new byte[1];
-                a[0] = 'q';
-                buffer = ByteBuffer.wrap(a);
-                sc.write(buffer);
-                sc.close();
-                return "server connection exited";
             default:
                 a = new byte[1];
                 a[0] = 's';
