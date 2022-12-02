@@ -247,7 +247,8 @@ public class Server {
 
             ServerSocketChannel listeningSocket = ServerSocketChannel.open();
             listeningSocket.bind(new InetSocketAddress(port));
-
+            AcceptTask acceptTask = new AcceptTask(listeningSocket);
+            es.submit(acceptTask);
             Scanner scanner = new Scanner(System.in);
             while (true) {
                 String command = scanner.nextLine();
