@@ -29,7 +29,7 @@ public class Client {
     public void connect() throws IOException {
         this.sc = SocketChannel.open();
         //blocking call
-        sc.connect(new InetSocketAddress(serverIP,serverPort));
+        sc.connect(new InetSocketAddress(serverIP, serverPort));
     }
 
 

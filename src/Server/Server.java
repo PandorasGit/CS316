@@ -34,7 +34,7 @@ public class Server {
                 try {
                     serveChannel = listeningSocket.accept();
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    break;
                 }
                 futures.add(es.submit(new ServerTask(serveChannel)));
             }

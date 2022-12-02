@@ -5,6 +5,7 @@ import Client.Client;
 
 import java.io.IOException;
 import java.net.InetAddress;
+import java.nio.channels.ClosedChannelException;
 import java.util.Locale;
 import java.util.Scanner;
 
@@ -27,10 +28,18 @@ public class User {
             Scanner keyboard = new Scanner(System.in);
             String command = keyboard.nextLine();
             String[] command_array = user.parseCommand(command);
-            if (!command_array[0].equals("i")) {
-                client.connect();
+
+            try {
+                if (!command_array[0].equals("i")) {
+                    client.connect();
+                }
+                System.out.println(client.service(command_array));
+            }catch (IOException e) {
+                System.out.println("Server not available.");
+                keyboard.close();
+                break;
             }
-            System.out.println(client.service(command_array));
+
         }
 
     }
