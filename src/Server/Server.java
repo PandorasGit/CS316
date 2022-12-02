@@ -39,7 +39,7 @@ public class Server {
                 futures.add(es.submit(new ServerTask(serveChannel)));
             }
         }
-
+    }
 
         static class ServerTask implements Callable<Character> {
             private final SocketChannel serveChannel;
@@ -272,6 +272,3 @@ public class Server {
             }
         }
     }
-
-
-}
