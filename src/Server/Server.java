@@ -254,14 +254,13 @@ public class Server {
                 String command = scanner.nextLine();
 
                 if (command.equals("q")) {
-                    System.out.println("System terminated");
+                    System.out.println("System termination processing.");
                     break;
                 }
             }
             scanner.close();
             listeningSocket.close();
             es.shutdown();
-            es.awaitTermination(30, TimeUnit.SECONDS);
         }
 
 
